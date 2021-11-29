@@ -30,13 +30,13 @@ EthernetFrame::EthernetFrame
 std::string
 EthernetFrame::GetSrcMacStr() const
 {
-    return getMacStr(src);
+    return getMacStr(srcMac);
 }
 
 std::string
 EthernetFrame::GetDstMacStr() const
 {
-    return getMacStr(dst);
+    return getMacStr(dstMac);
 }
 
 std::string
@@ -61,8 +61,8 @@ EthernetFrame::getMacStr
     return result;
 } 
 
-std::array<std::byte, 2>
-EthernetFrame::GetPrototype() const
+uint16_t
+EthernetFrame::GetProtocol() const
 {
     return htons(protocol);
 }

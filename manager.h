@@ -1,9 +1,12 @@
 #pragma once
 
+#include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <linux/if_ether.h>
 #include <array>
 #include <cstddef>
+#include <cstring>
 #include "frame.h"
 
 namespace network_counter {
@@ -18,18 +21,11 @@ public:
     void Process();
 
 private:
-    int socket;
+    int socketDescr;
     std::array<std::byte, BUFFER_SIZE> rawBuffer;
 
 };
 
-void info_printer(const EthernetFrame& frame, std::ostream& out)
-{
-    out << "Ethernet frame:\n";
-    out << "Destination: " << frame.GetDstMacStr() << "; ";
-    out << "Source: " << frame.GetDstMacStr() << "; ";
-    out << "Protocol: " << frame.GetProtocol() << "; ";
-    out << std::endl;
-}
+void info_printer(const EthernetFrame& frame, std::ostream& out);
 
 }

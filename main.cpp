@@ -1,16 +1,13 @@
 #include <iostream>
-#include <sys/socket.h>
-#include "frame.h"
+#include "manager.h"
 
-void run()
-{   
-
-
-}
 
 int main()
 {
-    run();    
+    network_counter::SnifferManager manager;
+
+    manager.Process();
+    
 
     return 0;
 }
