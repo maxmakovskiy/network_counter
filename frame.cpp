@@ -13,8 +13,12 @@ EthernetFrame::EthernetFrame
             srcMac[i] = raw[i];
         } else if (i >= 6 && i < 11) {
             dstMac[i] = raw[i];
-        } else if (i >= 12 && i < 14{
-
+        } else if (i >= 12 && i < 14) {
+            if (i == 12) {
+                protocol = static_cast<uint16_t>(raw[i]);
+            } else {
+                protocol = (protocol << 8) | static_cast<uint16_t>(raw[i]);
+            }
         } else {
             data.push_back(raw[i]);        
         }
@@ -60,11 +64,8 @@ EthernetFrame::getMacStr
 std::array<std::byte, 2>
 EthernetFrame::GetPrototype() const
 {
-    return htons(prototype);
+    return htons(protocol);
 }
-
-
-
 
 }
 

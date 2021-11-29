@@ -16,17 +16,18 @@ public:
     
     std::string GetSrcMacStr() const;
     std::string GetDstMacStr() const;
-    uint16_t GetPrototype() const;
+    uint16_t GetProtocol() const;
     
 private:
     std::array<std::byte, 6> srcMac;
     std::array<std::byte, 6> dstMac;
-    uint16_t prototype;
+    uint16_t protocol;
     std::vector<std::byte> data;
     
     std::string getMacStr(const std::array<std::byte, 6>& rawMac) const;
 
 };
+
 
 }
 
