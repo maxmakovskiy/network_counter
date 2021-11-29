@@ -3,16 +3,14 @@
 namespace network_counter {
 
 EthernetFrame::EthernetFrame
-(const std::vector<std::byte>& raw)
+(unsigned char* raw)
 {
-    data.reserve(raw.size() - 12);
-
-    for (size_t i = 0; i < raw.size(); i++) 
+    for (size_t i = 0; i < 15; i++) 
     {
         if (i >= 0 && i < 6) {
-            srcMac[i] = raw[i];
-        } else if (i >= 6 && i < 11) {
-            dstMac[i] = raw[i];
+            srcMac[i] = std::byte{raw[i]};
+        } else if (i >= 6 && i < 12) {
+            dstMac[i] = std::byte{raw[i]};
         } else if (i >= 12 && i < 14) {
             if (i == 12) {
                 protocol = static_cast<uint16_t>(raw[i]);
@@ -20,7 +18,7 @@ EthernetFrame::EthernetFrame
                 protocol = (protocol << 8) | static_cast<uint16_t>(raw[i]);
             }
         } else {
-            data.push_back(raw[i]);        
+            data = raw+i;        
         }
     }
 
@@ -43,22 +41,18 @@ std::string
 EthernetFrame::getMacStr
 (const std::array<std::byte, 6>& rawMac) const
 {
-    std::string result;
+    std::stringstream ss;
 
-    int i = 0;
-    for (const std::byte& b : rawMac) 
-    {
-        if (i == 2) 
-        {
-            result += ':';
-            i = 0;
-        }
-
-        i++;
-        result += std::to_integer<int>(b);
-    }
-    
-    return result;
+    ss << std::hex << std::to_integer<int>(rawMac[0]);
+    ss << std::hex << std::to_integer<int>(rawMac[1]);
+    ss << ":"; 
+    ss << std::hex << std::to_integer<int>(rawMac[2]);
+    ss << std::hex << std::to_integer<int>(rawMac[3]);
+    ss << ":"; 
+    ss << std::hex << std::to_integer<int>(rawMac[4]);
+    ss << std::hex << std::to_integer<int>(rawMac[5]);
+   
+    return ss.str();
 } 
 
 uint16_t

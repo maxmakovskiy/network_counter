@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <linux/if_ether.h>
-#include <array>
+#include <malloc.h>
 #include <cstddef>
 #include <cstring>
 #include "frame.h"
@@ -22,7 +22,7 @@ public:
 
 private:
     int socketDescr;
-    std::array<std::byte, BUFFER_SIZE> rawBuffer;
+    unsigned char* rawBuffer;
 
 };
 

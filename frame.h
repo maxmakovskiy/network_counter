@@ -6,13 +6,14 @@
 #include <string>
 #include <netinet/in.h>
 #include <cstdint>
+#include <sstream>
 
 namespace network_counter { 
 
 class EthernetFrame
 {
 public:
-    explicit EthernetFrame(const std::vector<std::byte>& raw);
+    explicit EthernetFrame(unsigned char* raw);
     
     std::string GetSrcMacStr() const;
     std::string GetDstMacStr() const;
@@ -22,7 +23,7 @@ private:
     std::array<std::byte, 6> srcMac;
     std::array<std::byte, 6> dstMac;
     uint16_t protocol;
-    std::vector<std::byte> data;
+    unsigned char* data;
     
     std::string getMacStr(const std::array<std::byte, 6>& rawMac) const;
 

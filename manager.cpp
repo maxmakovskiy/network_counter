@@ -12,8 +12,10 @@ SnifferManager::SnifferManager()
 
         exit(1);
     }
+    
+    rawBuffer = (unsigned char*)malloc(sizeof(unsigned char) * BUFFER_SIZE);
 
-    std::fill(rawBuffer.begin(), rawBuffer.end(), std::byte{0});
+    std::fill(rawBuffer, rawBuffer+BUFFER_SIZE, 0);
 }
 
 void
@@ -25,7 +27,7 @@ SnifferManager::Process()
 
     while(true)
     {
-        currentBuffLen = recvfrom(socketDescr, rawBuffer.data(),
+        currentBuffLen = recvfrom(socketDescr, rawBuffer,
                 BUFFER_SIZE, 0, &addrFrom, (socklen_t*)&addrFromLen);
         if (currentBuffLen == -1)
         {
@@ -33,8 +35,7 @@ SnifferManager::Process()
             exit(1);
         }
 
-        EthernetFrame frame(std::vector<std::byte>(rawBuffer.begin(),
-                    rawBuffer.end()));
+        EthernetFrame frame(rawBuffer);
 
         info_printer(frame, std::cout);
     }
