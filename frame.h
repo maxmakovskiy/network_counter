@@ -16,6 +16,10 @@
 
 namespace network_counter { 
 
+// TODO:
+// - Add support for IPv6 -> eth->h_proto == 0x86DD
+// - Add support for IGMP -> ip->protocol == 2
+
 enum class ProtocolType
 {
     TCP, UDP, ICMP, OTHER
@@ -51,6 +55,7 @@ public:
     std::string GetSrcMacStr() const;
     std::string GetDstMacStr() const;
     uint16_t GetProtocol() const;
+    std::string GetProtocolStr() const;
 
     std::string GetSrcIPAddrStr() const;
     std::string GetDstIPAddrStr() const;

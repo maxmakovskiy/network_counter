@@ -10,6 +10,8 @@ set(CMAKE_CXX_FLAGS "-Wall")
 set(CMAKE_CSS_FLAGS_DEBUG "-g")
 set(CMAKE_CSS_FLAGS_RELEASE "-O2")
 
+add_compile_definitions(VISUAL_DEBUG)
+
 add_library(net_sniffer_lib STATIC frame.cpp manager.cpp)
 
 add_executable(main main.cpp)

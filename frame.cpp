@@ -16,6 +16,10 @@ RawFrame::RawFrame
     srcIn.sin_addr.s_addr = ip->saddr;
     dstIn.sin_addr.s_addr = ip->daddr;
 
+#ifdef VISUAL_DEBUG
+    std::cout << static_cast<unsigned int>(ip->protocol) << '\n';
+#endif
+
     if (ip->protocol == 6) 
     {// TCP     
         tcp = reinterpret_cast<struct tcphdr*>(raw + sizeof(ethhdr) + iphdrLen);
@@ -130,7 +134,16 @@ RawFrame::getMacStr
 uint16_t
 RawFrame::GetProtocol() const
 {
-    return eth->h_proto;
+    return ntohs(eth->h_proto);
+}
+
+std::string
+RawFrame::GetProtocolStr() const
+{
+    char res[10];
+    sprintf(res, "0x%04x", GetProtocol());
+
+    return std::string(res);
 }
 
 std::string 
@@ -149,7 +162,7 @@ std::string
 RawFrame::getIPStr
 (const struct in_addr* addr) const
 {
-    char address[15];
+    char address[20];
     sprintf(address, "%s", inet_ntoa(*addr));
     return std::string(address);
 }
@@ -192,7 +205,7 @@ std::ostream& operator<<(std::ostream& os, const RawFrame& frame)
     os << "======== Ethernet header:\n";
     os << "\tDestination MAC: " << frame.GetDstMacStr() << '\n';
     os << "\tSource MAC: " << frame.GetSrcMacStr() << '\n';
-    os << "\tProtocol: " << frame.GetProtocol() << '\n';
+    os << "\tProtocol: " << frame.GetProtocolStr() << '\n';
     os << "======== IP header:\n";
     os << "\tDestination IP: " << frame.GetDstIPAddrStr() << '\n';
     os << "\tSource IP: " << frame.GetSrcIPAddrStr() << '\n';
