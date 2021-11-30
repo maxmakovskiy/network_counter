@@ -35,9 +35,10 @@ SnifferManager::Process()
     {
         currentBuffLen = recvfrom(socketDescr, rawBuffer,
                 BUFFER_SIZE, 0, &addrFrom, (socklen_t*)&addrFromLen);
-        
-//        std::cerr << std::strerror(errno) << std::endl;
+#ifdef MORE_DEBUG        
+        std::cerr << std::strerror(errno) << std::endl;
         std::cout << "RAW BUFFER LENGTH: " << currentBuffLen << '\n';
+#endif
         if (currentBuffLen == -1)
         {
             std::cerr << "error by using recvfrom" << std::endl;

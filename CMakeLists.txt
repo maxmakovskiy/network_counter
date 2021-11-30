@@ -12,6 +12,6 @@ set(CMAKE_CSS_FLAGS_RELEASE "-O2")
 
 add_library(net_sniffer_lib STATIC frame.cpp manager.cpp)
 
-add_executable(main main.cpp frame.cpp manager.cpp)
+add_executable(main main.cpp)
 target_link_libraries(main net_sniffer_lib)
 
