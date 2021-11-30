@@ -1,34 +1,45 @@
 #pragma once
 
-#include <cstddef>
 #include <vector>
-#include <array>
+#include <iostream>
 #include <string>
-#include <netinet/in.h>
 #include <cstdint>
-#include <sstream>
+#include <cstring>
+#include <stdio.h>
+#include <linux/if_ether.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
 
 namespace network_counter { 
 
-class EthernetFrame
+class RawFrame
 {
 public:
-    explicit EthernetFrame(unsigned char* raw);
+    explicit RawFrame(unsigned char* raw, int rawLen);
     
     std::string GetSrcMacStr() const;
     std::string GetDstMacStr() const;
     uint16_t GetProtocol() const;
-    
+
 private:
-    std::array<std::byte, 6> srcMac;
-    std::array<std::byte, 6> dstMac;
-    uint16_t protocol;
-    unsigned char* data;
+    unsigned char* data; 
+    int rawLen;
+    int iphdrLen;
+
+    // raw mappings from unix headers 
+    struct iphdr* ip;
+    struct ethhdr* eth;
+    struct sockaddr_in srcIn, dstIn;
+    struct tcphdr* tcp;
+    struct udphdr* udp;
     
-    std::string getMacStr(const std::array<std::byte, 6>& rawMac) const;
+    std::string getMacStr(const unsigned char* rawMac) const;
 
 };
 
+std::ostream& operator<<(std::ostream& os, const RawFrame& frame);
 
 }
 

@@ -3,10 +3,9 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <linux/if_ether.h>
 #include <malloc.h>
-#include <cstddef>
 #include <cstring>
+#include <unistd.h>
 #include "frame.h"
 
 namespace network_counter {
@@ -17,6 +16,7 @@ class SnifferManager
 {
 public:
     SnifferManager();
+    ~SnifferManager();
 
     void Process();
 
@@ -25,7 +25,5 @@ private:
     unsigned char* rawBuffer;
 
 };
-
-void info_printer(const EthernetFrame& frame, std::ostream& out);
 
 }

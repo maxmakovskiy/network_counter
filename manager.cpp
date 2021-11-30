@@ -13,9 +13,15 @@ SnifferManager::SnifferManager()
         exit(1);
     }
     
-    rawBuffer = (unsigned char*)malloc(sizeof(unsigned char) * BUFFER_SIZE);
+    rawBuffer = (unsigned char*)malloc(BUFFER_SIZE);
 
     std::fill(rawBuffer, rawBuffer+BUFFER_SIZE, 0);
+}
+
+SnifferManager::~SnifferManager()
+{
+    close(socketDescr);
+    free(rawBuffer);
 }
 
 void
@@ -35,23 +41,12 @@ SnifferManager::Process()
             exit(1);
         }
 
-        EthernetFrame frame(rawBuffer);
-
-        info_printer(frame, std::cout);
+        RawFrame frame(rawBuffer, currentBuffLen);
+    
+        std::cout << frame;
     }
 
 }
-
-void info_printer(const EthernetFrame& frame, std::ostream& out)
-{
-    out << "Ethernet frame:\n";
-    out << "Destination: " << frame.GetDstMacStr() << "; ";
-    out << "Source: " << frame.GetDstMacStr() << "; ";
-    out << "Protocol: " << frame.GetProtocol() << "; ";
-    out << std::endl;
-}
-
-
 
 }
 

@@ -2,63 +2,78 @@
 
 namespace network_counter {
 
-EthernetFrame::EthernetFrame
-(unsigned char* raw)
+RawFrame::RawFrame
+(unsigned char* raw, int rawLen)
+    : rawLen(rawLen)
 {
-    for (size_t i = 0; i < 15; i++) 
-    {
-        if (i >= 0 && i < 6) {
-            srcMac[i] = std::byte{raw[i]};
-        } else if (i >= 6 && i < 12) {
-            dstMac[i] = std::byte{raw[i]};
-        } else if (i >= 12 && i < 14) {
-            if (i == 12) {
-                protocol = static_cast<uint16_t>(raw[i]);
-            } else {
-                protocol = (protocol << 8) | static_cast<uint16_t>(raw[i]);
-            }
-        } else {
-            data = raw+i;        
-        }
+    ip = reinterpret_cast<struct iphdr*>(raw + sizeof(ethhdr));
+    eth = reinterpret_cast<struct ethhdr*>(raw);
+    
+    iphdrLen = ip->ihl * 4;
+
+    memset(&srcIn, 0, sizeof(srcIn));
+    memset(&dstIn, 0, sizeof(dstIn));
+    srcIn.sin_addr.s_addr = ip->saddr;
+    dstIn.sin_addr.s_addr = ip->daddr;
+
+    if (ip->protocol == 6) 
+    {// TCP     
+        tcp = reinterpret_cast<struct tcphdr*>(raw + sizeof(ethhdr) + iphdrLen);
+        data = raw + iphdrLen + sizeof(ethhdr) + sizeof(tcphdr);
+    }
+    else if (ip->protocol == 17)
+    {// UDP
+        udp = reinterpret_cast<struct udphdr*>(raw + sizeof(ethhdr) + iphdrLen);
+        data = raw + iphdrLen + sizeof(ethhdr) + sizeof(udphdr);
     }
 
+/*
+    protocol = static_cast<uint16_t>(raw[i]);
+    protocol = (protocol << 8) | static_cast<uint16_t>(raw[i]);
+*/
 }
 
 
 std::string
-EthernetFrame::GetSrcMacStr() const
+RawFrame::GetSrcMacStr() const
 {
-    return getMacStr(srcMac);
+    return getMacStr(eth->h_source);
 }
 
 std::string
-EthernetFrame::GetDstMacStr() const
+RawFrame::GetDstMacStr() const
 {
-    return getMacStr(dstMac);
+    return getMacStr(eth->h_dest);
 }
 
 std::string
-EthernetFrame::getMacStr
-(const std::array<std::byte, 6>& rawMac) const
+RawFrame::getMacStr
+(const unsigned char* rawMac) const
 {
-    std::stringstream ss;
-
-    ss << std::hex << std::to_integer<int>(rawMac[0]);
-    ss << std::hex << std::to_integer<int>(rawMac[1]);
-    ss << ":"; 
-    ss << std::hex << std::to_integer<int>(rawMac[2]);
-    ss << std::hex << std::to_integer<int>(rawMac[3]);
-    ss << ":"; 
-    ss << std::hex << std::to_integer<int>(rawMac[4]);
-    ss << std::hex << std::to_integer<int>(rawMac[5]);
-   
-    return ss.str();
+    char result[18];
+    
+    sprintf(result, "%.2x:%.2x:%.2x:%.2x:%.2x:%.2x", rawMac[0],
+            rawMac[1], rawMac[2], rawMac[3], rawMac[4], rawMac[5]); 
+       
+    return std::string(result);
 } 
 
 uint16_t
-EthernetFrame::GetProtocol() const
+RawFrame::GetProtocol() const
 {
-    return htons(protocol);
+    return eth->h_proto;
+}
+
+
+std::ostream& operator<<(std::ostream& os, const RawFrame& frame)
+{
+    os << "=== Frame ========================================\n";
+    os << "== Ethernet header:\n";
+    os << "\tDestination: " << frame.GetDstMacStr() << '\n';
+    os << "\tSource: " << frame.GetSrcMacStr() << '\n';
+    os << "\tProtocol: " << frame.GetProtocol() << '\n';
+
+    return os;
 }
 
 }
