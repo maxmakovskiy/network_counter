@@ -11,6 +11,7 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
+#include <arpa/inet.h>
 
 namespace network_counter { 
 
@@ -22,6 +23,9 @@ public:
     std::string GetSrcMacStr() const;
     std::string GetDstMacStr() const;
     uint16_t GetProtocol() const;
+
+    std::string GetSrcIPAddrStr() const;
+    std::string GetDstIPAddrStr() const;
 
 private:
     unsigned char* data; 
@@ -36,6 +40,7 @@ private:
     struct udphdr* udp;
     
     std::string getMacStr(const unsigned char* rawMac) const;
+    std::string getIPStr(const struct in_addr* addr) const;
 
 };
 

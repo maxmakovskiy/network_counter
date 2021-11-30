@@ -15,7 +15,7 @@ SnifferManager::SnifferManager()
     
     rawBuffer = (unsigned char*)malloc(BUFFER_SIZE);
 
-    std::fill(rawBuffer, rawBuffer+BUFFER_SIZE, 0);
+    memset(rawBuffer, 0, BUFFER_SIZE);
 }
 
 SnifferManager::~SnifferManager()
@@ -35,6 +35,9 @@ SnifferManager::Process()
     {
         currentBuffLen = recvfrom(socketDescr, rawBuffer,
                 BUFFER_SIZE, 0, &addrFrom, (socklen_t*)&addrFromLen);
+        
+//        std::cerr << std::strerror(errno) << std::endl;
+        std::cout << "RAW BUFFER LENGTH: " << currentBuffLen << '\n';
         if (currentBuffLen == -1)
         {
             std::cerr << "error by using recvfrom" << std::endl;
@@ -44,6 +47,8 @@ SnifferManager::Process()
         RawFrame frame(rawBuffer, currentBuffLen);
     
         std::cout << frame;
+    
+//        memset(rawBuffer, 0, currentBuffLen);
     }
 
 }

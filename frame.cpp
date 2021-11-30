@@ -64,14 +64,39 @@ RawFrame::GetProtocol() const
     return eth->h_proto;
 }
 
+std::string 
+RawFrame::GetSrcIPAddrStr() const
+{
+    return getIPStr(&srcIn.sin_addr);
+}
+
+std::string
+RawFrame::GetDstIPAddrStr() const
+{
+    return getIPStr(&dstIn.sin_addr);
+}
+
+std::string
+RawFrame::getIPStr
+(const struct in_addr* addr) const
+{
+    char address[15];
+    sprintf(address, "%s", inet_ntoa(*addr));
+    return std::string(address);
+}
+
 
 std::ostream& operator<<(std::ostream& os, const RawFrame& frame)
 {
     os << "=== Frame ========================================\n";
-    os << "== Ethernet header:\n";
-    os << "\tDestination: " << frame.GetDstMacStr() << '\n';
-    os << "\tSource: " << frame.GetSrcMacStr() << '\n';
+    os << "======== Ethernet header:\n";
+    os << "\tDestination MAC: " << frame.GetDstMacStr() << '\n';
+    os << "\tSource MAC: " << frame.GetSrcMacStr() << '\n';
     os << "\tProtocol: " << frame.GetProtocol() << '\n';
+    os << "======== IP header:\n";
+    os << "\tDestination IP: " << frame.GetDstIPAddrStr() << '\n';
+    os << "\tSource IP: " << frame.GetSrcIPAddrStr() << '\n';
+    os << std::endl;
 
     return os;
 }
