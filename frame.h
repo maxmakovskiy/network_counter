@@ -12,6 +12,7 @@
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
+#include <netinet/igmp.h>
 #include <arpa/inet.h>
 
 namespace network_counter { 
@@ -19,10 +20,11 @@ namespace network_counter {
 // TODO:
 // - Add support for IPv6 -> eth->h_proto == 0x86DD
 // - Add support for IGMP -> ip->protocol == 2
+// - Add writing output to file
 
 enum class ProtocolType
 {
-    TCP, UDP, ICMP, OTHER
+    TCP, UDP, ICMP, IGMP, OTHER
 };
 
 struct TcpRepresentation
@@ -47,6 +49,13 @@ struct IcmpRepresentation
     unsigned int code;
 };
 
+struct IgmpRepresentation
+{
+    unsigned int type;
+    unsigned int routingCode;
+    std::string groupAddr;
+};
+
 class RawFrame
 {
 public:
@@ -63,6 +72,7 @@ public:
     IcmpRepresentation GetIcmpRepresentation() const;
     TcpRepresentation GetTcpRepresentation() const;
     UdpRepresentation GetUdpRepresentation() const;
+    IgmpRepresentation GetIgmpRepresentation() const;
 
     ProtocolType GetProtoType() const;
 
@@ -79,6 +89,7 @@ private:
     struct tcphdr* tcp;
     struct udphdr* udp;
     struct icmphdr* icmp;
+    struct igmp* igmp;
     
     std::string getMacStr(const unsigned char* rawMac) const;
     std::string getIPStr(const struct in_addr* addr) const;

@@ -38,6 +38,12 @@ RawFrame::RawFrame
         data = raw + iphdrLen + sizeof(ethhdr) + sizeof(icmphdr);
         underlyingType = ProtocolType::ICMP;
     }
+    else if (ip->protocol == 2)
+    {
+        igmp = reinterpret_cast<struct igmp*>(raw + sizeof(ethhdr) + iphdrLen);
+        data = raw + iphdrLen + sizeof(ethhdr) + sizeof(igmp);
+        underlyingType = ProtocolType::IGMP;
+    }
     else
     {
         tcp = nullptr;
@@ -91,10 +97,10 @@ SnifferManager::Process()
     {
         currentBuffLen = recvfrom(socketDescr, rawBuffer,
                 BUFFER_SIZE, 0, &addrFrom, (socklen_t*)&addrFromLen);
-//#ifdef MORE_DEBUG        
+#ifdef VISUAL_DEBUG        
         std::cerr << std::strerror(errno) << std::endl;
         std::cout << "RAW BUFFER LENGTH: " << currentBuffLen << '\n';
-//#endif
+#endif
         if (currentBuffLen == -1)
         {
             std::cerr << "error by using recvfrom" << std::endl;
@@ -176,7 +182,9 @@ RawFrame::GetProtoType() const
 IcmpRepresentation
 RawFrame::GetIcmpRepresentation() const
 {
-    return IcmpRepresentation{ icmp->type, icmp->code };
+    return IcmpRepresentation{
+            ntohs(icmp->type),
+            ntohs(icmp->code) };
 }
 
 TcpRepresentation
@@ -197,6 +205,15 @@ RawFrame::GetUdpRepresentation() const
              ntohs(udp->source),
              ntohs(udp->dest),
              ntohs(udp->len) };
+}
+
+IgmpRepresentation
+RawFrame::GetIgmpRepresentation() const
+{
+    return IgmpRepresentation{
+            ntohs(igmp->igmp_type),
+            ntohs(igmp->igmp_code),
+            getIPStr(&igmp->igmp_group) };
 }
 
 std::ostream& operator<<(std::ostream& os, const RawFrame& frame)
@@ -224,8 +241,8 @@ std::ostream& operator<<(std::ostream& os, const RawFrame& frame)
     case ProtocolType::UDP: {
         os << "======== UDP packet:\n";
         auto represent = frame.GetUdpRepresentation();
-        os << "\tSource port: " << represent.srcPort << '\n';
         os << "\tDestination port: " << represent.dstPort << '\n';
+        os << "\tSource port: " << represent.srcPort << '\n';
         os << "\tLength: " << represent.length << '\n';
         } break;
     case ProtocolType::ICMP: {
@@ -233,6 +250,13 @@ std::ostream& operator<<(std::ostream& os, const RawFrame& frame)
         auto represent = frame.GetIcmpRepresentation();
         os << "\tType: " << represent.type << '\n';
         os << "\tCode: " << represent.code << '\n';
+        } break;
+    case ProtocolType::IGMP: {
+        os << "======== IGMP packet:\n";
+        auto represent = frame.GetIgmpRepresentation();
+        os << "\tType: " << represent.type << '\n';
+        os << "\tCode: " << represent.routingCode << '\n';
+        os << "\tGroup address: " << represent.groupAddr << '\n';
         } break;
     default:
         // nothing to show
