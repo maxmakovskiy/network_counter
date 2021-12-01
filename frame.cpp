@@ -8,7 +8,13 @@ RawFrame::RawFrame
 {
     ip = reinterpret_cast<struct iphdr*>(raw + sizeof(ethhdr));
     eth = reinterpret_cast<struct ethhdr*>(raw);
-    
+   
+    if (GetProtocol() == 0x86dd) {
+        ipVer = IPVer::IPv6;
+    } else {
+        ipVer = IPVer::IPv4;
+    }
+
     iphdrLen = ip->ihl * 4;
 
     memset(&srcIn, 0, sizeof(srcIn));
@@ -193,8 +199,8 @@ RawFrame::GetTcpRepresentation() const
     return TcpRepresentation{ 
              ntohs(tcp->source),
              ntohs(tcp->dest),
-             ntohs(tcp->seq),
-             ntohs(tcp->ack_seq),
+             ntohl(tcp->seq),
+             ntohl(tcp->ack_seq),
              static_cast<unsigned int>(tcp->doff)*4 };
 }
 
@@ -211,12 +217,18 @@ IgmpRepresentation
 RawFrame::GetIgmpRepresentation() const
 {
     char res[10];
-    sprintf(res, "0x%022x", igmp->igmp_type);
+    sprintf(res, "0x%02x", igmp->igmp_type);
 
     return IgmpRepresentation{
             std::string(res),
             igmp->igmp_code,
             getIPStr(&igmp->igmp_group) };
+}
+
+IPVer
+RawFrame::GetIPVersion() const
+{
+    return ipVer;
 }
 
 std::ostream& operator<<(std::ostream& os, const RawFrame& frame)
@@ -226,9 +238,17 @@ std::ostream& operator<<(std::ostream& os, const RawFrame& frame)
     os << "\tDestination MAC: " << frame.GetDstMacStr() << '\n';
     os << "\tSource MAC: " << frame.GetSrcMacStr() << '\n';
     os << "\tProtocol: " << frame.GetProtocolStr() << '\n';
-    os << "======== IP header:\n";
-    os << "\tDestination IP: " << frame.GetDstIPAddrStr() << '\n';
-    os << "\tSource IP: " << frame.GetSrcIPAddrStr() << '\n';
+
+    if (frame.GetIPVersion() == IPVer::IPv4) 
+    {
+        os << "======== IPv4 header:\n";
+        os << "\tDestination IP: " << frame.GetDstIPAddrStr() << '\n';
+        os << "\tSource IP: " << frame.GetSrcIPAddrStr() << '\n';
+    }
+    else
+    {
+        os << "======== IPv6 header:\n";
+    }
 
     switch (frame.GetProtoType()) 
     {

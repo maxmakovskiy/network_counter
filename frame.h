@@ -19,12 +19,16 @@ namespace network_counter {
 
 // TODO:
 // - Add support for IPv6 -> eth->h_proto == 0x86DD
-// - Add support for IGMP -> ip->protocol == 2
 // - Add writing output to file
 
 enum class ProtocolType
 {
     TCP, UDP, ICMP, IGMP, OTHER
+};
+
+enum class IPVer
+{
+    IPv4, IPv6
 };
 
 struct TcpRepresentation
@@ -68,6 +72,7 @@ public:
 
     std::string GetSrcIPAddrStr() const;
     std::string GetDstIPAddrStr() const;
+    IPVer GetIPVersion() const;
 
     IcmpRepresentation GetIcmpRepresentation() const;
     TcpRepresentation GetTcpRepresentation() const;
@@ -81,6 +86,7 @@ private:
     int rawLen;
     int iphdrLen;
     ProtocolType underlyingType;
+    IPVer ipVer;
 
     // raw mappings from unix headers 
     struct iphdr* ip;
