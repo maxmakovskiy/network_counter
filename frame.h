@@ -51,7 +51,7 @@ struct IcmpRepresentation
 
 struct IgmpRepresentation
 {
-    unsigned int type;
+    std::string type;
     unsigned int routingCode;
     std::string groupAddr;
 };

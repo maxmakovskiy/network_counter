@@ -183,8 +183,8 @@ IcmpRepresentation
 RawFrame::GetIcmpRepresentation() const
 {
     return IcmpRepresentation{
-            ntohs(icmp->type),
-            ntohs(icmp->code) };
+            icmp->type,
+            icmp->code };
 }
 
 TcpRepresentation
@@ -210,9 +210,12 @@ RawFrame::GetUdpRepresentation() const
 IgmpRepresentation
 RawFrame::GetIgmpRepresentation() const
 {
+    char res[10];
+    sprintf(res, "0x%022x", igmp->igmp_type);
+
     return IgmpRepresentation{
-            ntohs(igmp->igmp_type),
-            ntohs(igmp->igmp_code),
+            std::string(res),
+            igmp->igmp_code,
             getIPStr(&igmp->igmp_group) };
 }
 
