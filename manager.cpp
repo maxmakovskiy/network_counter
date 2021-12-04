@@ -29,8 +29,7 @@ void
 SnifferManager::AssignFile
 (const std::string& filename)
 {
-    //file = std::make_optional<File>(filename);
-    std::cout << filename;
+    file = std::make_optional<File>(filename);
 }
 
 void
@@ -55,17 +54,17 @@ SnifferManager::Process()
         }
 
         RawFrame frame(rawBuffer, currentBuffLen);
-/*   
-        if(file.has_value()) 
+   
+        if(file) 
         {
             std::stringstream ss;
             ss << frame;
-            file.WriteStrings(ss.str());
+            file->WriteString(ss.str());
         }
         else 
-        {*/
+        {
             std::cout << frame;
-//        }
+        }
 
     }
 

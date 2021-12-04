@@ -6,7 +6,7 @@
 #include <malloc.h>
 #include <cstring>
 #include <unistd.h>
-//#include <optional>
+#include <optional>
 #include "frame.h"
 #include "ntfile.h"
 
@@ -28,7 +28,7 @@ public:
 private:
     int socketDescr;
     unsigned char* rawBuffer;
-//    std::optional<File> file;
+    std::optional<File> file;
     
 };
 

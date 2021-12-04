@@ -3,18 +3,22 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <filesystem>
 
 namespace network_counter {
 
-class NTFile
+namespace fs = std::filesystem;
+
+class File
 {
 public:
-    NTFile(const std::string& fileName);
+
+    File(const std::string& fileName);
 
     void WriteString(const std::string& str);
 
 private:
-    std::string fileName;
+    fs::path fileName;
     std::ofstream fileStream;
 };
 
