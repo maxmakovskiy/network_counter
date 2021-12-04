@@ -24,6 +24,15 @@ SnifferManager::~SnifferManager()
     free(rawBuffer);
 }
 
+
+void
+SnifferManager::AssignFile
+(const std::string& filename)
+{
+    //file = std::make_optional<File>(filename);
+    std::cout << filename;
+}
+
 void
 SnifferManager::Process()
 {
@@ -46,10 +55,18 @@ SnifferManager::Process()
         }
 
         RawFrame frame(rawBuffer, currentBuffLen);
-    
-        std::cout << frame;
-    
-//        memset(rawBuffer, 0, currentBuffLen);
+/*   
+        if(file.has_value()) 
+        {
+            std::stringstream ss;
+            ss << frame;
+            file.WriteStrings(ss.str());
+        }
+        else 
+        {*/
+            std::cout << frame;
+//        }
+
     }
 
 }

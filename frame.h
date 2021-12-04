@@ -1,9 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <iostream>
 #include <string>
-#include <cstdint>
 #include <cstring>
 #include <stdio.h>
 #include <linux/if_ether.h>
@@ -20,6 +18,10 @@ namespace network_counter {
 // TODO:
 // - Add support for IPv6 -> eth->h_proto == 0x86DD
 // - Add writing output to file
+// - Generate report or graph
+// - Save statistics to sqlite for further processing
+// - Refactoring projects structure -> make it more flexible
+// - Create user interface with FLTK
 
 enum class ProtocolType
 {

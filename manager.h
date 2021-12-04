@@ -6,7 +6,10 @@
 #include <malloc.h>
 #include <cstring>
 #include <unistd.h>
+//#include <optional>
 #include "frame.h"
+#include "ntfile.h"
+
 
 namespace network_counter {
 
@@ -19,11 +22,15 @@ public:
     ~SnifferManager();
 
     void Process();
+    
+    void AssignFile(const std::string& filename);
 
 private:
     int socketDescr;
     unsigned char* rawBuffer;
-
+//    std::optional<File> file;
+    
 };
 
 }
+

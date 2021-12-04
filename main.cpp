@@ -5,7 +5,7 @@
 int main()
 {
     network_counter::SnifferManager manager;
-
+    manager.AssignFile("log1.txt");
     manager.Process();
     
 
