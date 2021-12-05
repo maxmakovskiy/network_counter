@@ -1,6 +1,4 @@
  TODO (sort by priority):
- - Add writing output to file
- - Add timestamp to the header of log file
  - Refactoring projects structure -> make it more flexible
  - Generate report or graph
  - Save statistics to sqlite for further processing

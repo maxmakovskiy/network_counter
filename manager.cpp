@@ -3,6 +3,7 @@
 namespace network_counter {
 
 SnifferManager::SnifferManager()
+    : file(std::nullopt)
 {
     socketDescr = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
     if (socketDescr == -1) 
