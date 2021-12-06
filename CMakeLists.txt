@@ -25,10 +25,12 @@ set(CMAKE_CXX_FLAGS "-Wall")
 set(CMAKE_CSS_FLAGS_DEBUG "-g")
 set(CMAKE_CSS_FLAGS_RELEASE "-O2")
 
-add_library(net_sniffer_lib STATIC frame.cpp manager.cpp ntfile.cpp)
-#add_library(net_sniffer_lib STATIC frame.cpp manager.cpp)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
 
-add_executable(main main.cpp)
+add_library(net_sniffer_lib STATIC src/frame.cpp src/manager.cpp src/ntfile.cpp src/unpacked_frame.cpp)
 
-target_link_libraries(main net_sniffer_lib)
+add_executable(main src/main.cpp)
+
+target_link_libraries(main net_sniffer_lib ${CONAN_LIBS})
 

@@ -55,17 +55,20 @@ SnifferManager::Process()
         }
 
         RawFrame frame(rawBuffer, currentBuffLen);
+        auto unpacked = frame.GetUnpackedFrame();
+        std::cout << unpacked;
+
    
-        if(file) 
+/*        if(file) 
         {
             std::stringstream ss;
             ss << frame;
             file->WriteString(ss.str());
         }
         else 
-        {
-            std::cout << frame;
-        }
+        {*/
+//            std::cout << frame;
+//        }
 
     }
 
