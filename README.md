@@ -1,7 +1,6 @@
  TODO (sort by priority):
- - Add GUI
- - Make sessions
- - Save statistics to sqlite for further processing
- - Generate report or graph
- - Create user interface with FLTK
+ - Save unpacked containers to sqlite DB for further processing
+ - Create user interface with FTXUI
+ - Make session coordinator 
+ - Generate report or graph based on DB content
  - Add support for IPv6 -> eth->h_proto == 0x86DD
