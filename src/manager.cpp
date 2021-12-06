@@ -40,7 +40,10 @@ SnifferManager::Process()
     int addrFromLen = sizeof(addrFrom);
     int currentBuffLen = -1;
 
-    while(true)
+    SQLite handler;
+
+    for (int i = 0; i < 100; ++i)
+//    while(true)
     {
         currentBuffLen = recvfrom(socketDescr, rawBuffer,
                 BUFFER_SIZE, 0, &addrFrom, (socklen_t*)&addrFromLen);
@@ -56,7 +59,10 @@ SnifferManager::Process()
 
         RawFrame frame(rawBuffer, currentBuffLen);
         auto unpacked = frame.GetUnpackedFrame();
-        std::cout << unpacked;
+
+        handler.AddRow(unpacked);
+
+//        std::cout << unpacked;
 
    
 /*        if(file) 
@@ -71,6 +77,9 @@ SnifferManager::Process()
 //        }
 
     }
+
+    handler.GetFramesByIPproto(6);
+
 
 }
 

@@ -9,7 +9,7 @@
 #include <optional>
 #include "frame.h"
 #include "ntfile.h"
-
+#include "sqlite_dao.h"
 
 namespace network_counter {
 

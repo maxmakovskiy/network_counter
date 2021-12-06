@@ -1,8 +1,14 @@
 #pragma once
 
 #include <sqlite3.h>
-#include <ctime>
+//#include <ctime>
+#include <vector>
+#include <cstdint>
 #include "unpacked_frame.h"
+
+#ifdef SQL_DEBUG_EXCEPTION
+#include <exception>
+#endif
 
 namespace network_counter {
 
@@ -25,13 +31,14 @@ public:
     ~SQLite();
     
     bool AddRow(const UnpackedFrame& frame);
+    void GetFramesByIPproto(uint32_t protocolNumber);
+//    std::vector<UnpackedFrame> GetFramesByIPproto(uint32_t protocolNumber);
 
 /*
+    std::vector<UnpackedFrame> GetFramesByEtherType(size_t etherType);
     std::vector<UnpackedFrame> GetFramesBySessionNumber(size_t sessionNumber);
     std::vector<UnpackedFrame> GetFramesByMac(size_t mac);
     std::vector<UnpackedFrame> GetFramesByIP(size_t ip);
-    std::vector<UnpackedFrame> GetFramesByEtherType(size_t etherType);
-    std::vector<UnpackedFrame> GetFramesByIPproto(size_t ipProtocol);
     // more compex condition: low =< rawLength =< high
     std::vector<UnpackedFrame> GetFramesByRawLengthRange(size_t sessionNumber);
     // more compex condition: from =< timestamp =< to 
@@ -46,7 +53,8 @@ private:
 
     void CreateEmptyTable();
 
-    int StatsCallback(void *NotUsed, int argc, char **argv, char **azColName);
+    static int StatsCallback(void* NotUsed, int argc, char **argv, char **azColName);
+    static int GetFramesByFilter(void* data, int argc, char **argv, char **columns);
 
 };
 
