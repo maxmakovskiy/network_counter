@@ -1,9 +1,10 @@
 #pragma once
 
 #include <sqlite3.h>
-//#include <ctime>
 #include <vector>
 #include <cstdint>
+#include <stdlib.h>
+
 #include "unpacked_frame.h"
 
 #ifdef SQL_DEBUG_EXCEPTION
@@ -31,8 +32,9 @@ public:
     ~SQLite();
     
     bool AddRow(const UnpackedFrame& frame);
-    void GetFramesByIPproto(uint32_t protocolNumber);
-//    std::vector<UnpackedFrame> GetFramesByIPproto(uint32_t protocolNumber);
+    void LoadFramesByIPproto(uint32_t protocolNumber);
+
+    std::vector<UnpackedFrame> GetSelectedPackets();
 
 /*
     std::vector<UnpackedFrame> GetFramesByEtherType(size_t etherType);
@@ -49,12 +51,13 @@ private:
     sqlite3* dbObj;
     int errorCode;
     char* errorMessage; 
-    size_t id = 1;
+
+    std::vector<UnpackedFrame> buffer; 
+
+    sqlite3_stmt* selectByIPprotoStmt;
 
     void CreateEmptyTable();
 
-    static int StatsCallback(void* NotUsed, int argc, char **argv, char **azColName);
-    static int GetFramesByFilter(void* data, int argc, char **argv, char **columns);
 
 };
 

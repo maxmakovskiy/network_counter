@@ -2,7 +2,6 @@
 
 
 namespace network_counter {
-
 SQLite::SQLite()
 {
     errorCode = sqlite3_open(":memory:", &dbObj);
@@ -27,13 +26,15 @@ SQLite::~SQLite()
 
 bool SQLite::AddRow(const UnpackedFrame& frame)
 {
-    // MOCK!!!!!!!!!!!!!!!
-    const size_t sessNum = 1;
-    const size_t timestamp = 10000;
-
-    std::string insertQuery = "INSERT INTO PACKETS (ID,SessNum,Timestamp,DstMAC,SrcMAC,EtherType,DstIP,SrcIP,ProtocolIP) VALUES (" + std::to_string(id) + ", " + std::to_string(sessNum) + ", " + std::to_string(timestamp) + ", '" + frame.ethHdr.dstMac + "', " + "'" + frame.ethHdr.srcMac + "', " + std::to_string(frame.ethHdr.type) + ", " + "'" + frame.ipHdr.dstIP + "', " + "'" + frame.ipHdr.srcIP + "', " + std::to_string(frame.ipHdr.protocol) + ");";
+    std::string query = "INSERT INTO PACKETS (DstMAC,SrcMAC,EtherType,DstIP,SrcIP,ProtocolIP) VALUES ('";
+    query.append(frame.ethHdr.dstMac + "', '");
+    query.append(frame.ethHdr.srcMac + "', ");
+    query.append(std::to_string(frame.ethHdr.type) + ", '");
+    query.append(frame.ipHdr.dstIP + "', '");
+    query.append(frame.ipHdr.srcIP + "', ");
+    query.append(std::to_string(frame.ipHdr.protocol) + ");");
     
-    errorCode = sqlite3_exec(dbObj, insertQuery.c_str(), NULL/*StatsCallback*/,
+    errorCode = sqlite3_exec(dbObj, query.c_str(), NULL,
             0, &errorMessage);
     if (errorCode != SQLITE_OK)
     {
@@ -44,19 +45,16 @@ bool SQLite::AddRow(const UnpackedFrame& frame)
         throw std::invalid_argument("add_row");
 #endif
 
-        //return false;
+        return false;
     }
     
-    ++id;
     return true;
 }
 
 void SQLite::CreateEmptyTable()
 {
     std::string createTableQuery = "CREATE TABLE PACKETS("  \
-      "ID INT PRIMARY KEY     NOT NULL," \
-      "SessNum   INT    NOT NULL," \
-      "Timestamp   INT    NOT NULL," \
+      "ID INTEGER PRIMARY KEY    AUTOINCREMENT," \
       "DstMAC   TEXT    NOT NULL," \
       "SrcMAC   TEXT    NOT NULL," \
       "EtherType   INT    NOT NULL," \
@@ -64,10 +62,11 @@ void SQLite::CreateEmptyTable()
       "SrcIP   TEXT    NOT NULL," \
       "ProtocolIP   INT    NOT NULL);";
 
-    errorCode = sqlite3_exec(dbObj, createTableQuery.c_str(), NULL/*StatsCallback*/, 0, &errorMessage);
+    errorCode = sqlite3_exec(dbObj, createTableQuery.c_str(), NULL,
+            0, &errorMessage);
     if(errorCode)
     {
-        std::cerr << "SQL error: " << errorMessage << std::endl;
+        std::cerr << "SQL error: " << errorMessage << std::endl; 
         sqlite3_free(errorMessage);
 
 #ifdef SQL_DEBUG_EXCEPTION
@@ -76,57 +75,70 @@ void SQLite::CreateEmptyTable()
     }
 }
 
-int
-SQLite::StatsCallback
-(void *NotUsed, int argc, char **argv, char **azColName) 
-{
-   int i;
-   for(i = 0; i<argc; i++) {
-       std::cout << azColName[i] << " = "
-           << (argv[i] ? argv[i] : "NULL") << '\n';
-   }
-   return 0;
-}
-
 //std::vector<UnpackedFrame>
 void
-SQLite::GetFramesByIPproto
+SQLite::LoadFramesByIPproto
 (uint32_t protocolNumber)
 {
-//    char* data = "Callback function called";
- 
     std::string selectQuery = "SELECT * FROM PACKETS WHERE ProtocolIP = "
         + std::to_string(protocolNumber);
 
-    errorCode = sqlite3_exec(dbObj, selectQuery.c_str(), GetFramesByFilter,
-        NULL/*data*/, &errorMessage);
-
-    if(errorCode != SQLITE_OK)
+    errorCode = sqlite3_prepare_v2(dbObj, selectQuery.c_str(),
+                -1, &selectByIPprotoStmt, NULL);
+    if(errorCode != SQLITE_OK) 
     {
-        std::cerr << "SQL error: " << errorMessage << std::endl;
-        sqlite3_free(errorMessage);
+        std::cerr << "SQL error: " << sqlite3_errmsg(dbObj) << std::endl;
+        sqlite3_close(dbObj);
+        sqlite3_finalize(selectByIPprotoStmt);
 
 #ifdef SQL_DEBUG_EXCEPTION
         throw std::invalid_argument("get_frame_by_IP_proto");
 #endif
+
+        return;
     }
+
+    // execute sql statement, and while there are rows returned, print ID
+    int ret_code = 0;
+    while((ret_code = sqlite3_step(selectByIPprotoStmt)) == SQLITE_ROW) 
+    {
+        UnpackedFrame frame;
+
+        auto tmpDstMac = 
+            reinterpret_cast<const char*>(sqlite3_column_text(
+                        selectByIPprotoStmt, 1));
+        frame.ethHdr.dstMac = std::string(tmpDstMac); // string
+
+        auto tmpSrcMac = 
+            reinterpret_cast<const char*>(sqlite3_column_text(
+                        selectByIPprotoStmt, 2));
+        frame.ethHdr.srcMac = std::string(tmpSrcMac); // string
+
+        auto ethType = sqlite3_column_int(selectByIPprotoStmt, 3);
+        frame.ethHdr.type = static_cast<uint16_t>(ethType); // uint16_t
+
+        auto tmpDstIP = 
+            reinterpret_cast<const char*>(sqlite3_column_text(
+                        selectByIPprotoStmt, 4));
+        frame.ipHdr.dstIP = std::string(tmpDstIP); // string
+
+        auto tmpSrcIP =
+            reinterpret_cast<const char*>(sqlite3_column_text(
+                        selectByIPprotoStmt, 5));
+        frame.ipHdr.srcIP = std::string(tmpSrcIP); // string
+
+        auto ipProto = sqlite3_column_int(selectByIPprotoStmt, 6);
+        frame.ipHdr.protocol = static_cast<uint32_t>(ipProto); // uint32_t
+        
+        buffer.push_back(frame);
+    }
+
 }
 
-
-int
-SQLite::GetFramesByFilter
-(void* data, int argc, char** argv, char **columns)
+std::vector<UnpackedFrame> 
+SQLite::GetSelectedPackets()
 {
-   int i;
-   //std::cerr << std::string(reinterpret_cast<char*>(data)) << '\n';
-   
-   for(i = 0; i<argc; i++) {
-        const char* argvi = argv[i] ? argv[i] : "NULL";
-        std::cout << std::string(columns[i]) << " = "
-            << std::string(argvi) << std::endl;
-   }
-
-   return 0;
+    return buffer;
 }
 
 }

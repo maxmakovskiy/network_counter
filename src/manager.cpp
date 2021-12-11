@@ -78,8 +78,12 @@ SnifferManager::Process()
 
     }
 
-    handler.GetFramesByIPproto(6);
-
+    handler.LoadFramesByIPproto(6);
+    auto tmpBufferVector = handler.GetSelectedPackets();
+    for (const auto& item : tmpBufferVector)
+    {
+        std::cout << item;
+    }
 
 }
 
