@@ -8,6 +8,8 @@
 
 namespace network_counter {
 
+typedef unsigned char byte;
+    
 struct EthHeader
 {
     std::string dstMac;
@@ -56,7 +58,17 @@ struct UnpackedFrame
     std::variant<ICMP, IGMP, TCP, UDP> ipPayload;
 };
 
+enum class PayloadType : byte
+{
+    ICMP = 10, IGMP, TCP, UDP
+};
+
 std::ostream& operator<<(std::ostream& os, const UnpackedFrame& frame);
+void serializePacketWithoutIPpayload(const UnpackedFrame* frame, unsigned char* bytes);
+UnpackedFrame deserializePacketWithoutIPpayload(const unsigned char* data);
+
+void serializeIPpayload(const std::variant<ICMP, IGMP, TCP, UDP>* ipPayload, unsigned char* bytes);
+std::variant<ICMP, IGMP, TCP, UDP> deserializeIPpayload(unsigned char* bytes);
 
 }
 
