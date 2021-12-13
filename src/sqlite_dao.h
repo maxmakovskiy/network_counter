@@ -55,6 +55,7 @@ private:
     std::vector<UnpackedFrame> buffer; 
 
     sqlite3_stmt* selectByIPprotoStmt;
+    sqlite3_stmt* insertRowStmt;
 
     void CreateEmptyTable();
 

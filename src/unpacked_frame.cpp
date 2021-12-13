@@ -58,7 +58,7 @@ std::ostream& operator<<(std::ostream& os, const UnpackedFrame& frame)
         frame.ipHdr.srcIP = std::string(tmpSrcIP); // string
         frame.ipHdr.protocol = static_cast<uint32_t>(ipProto); // uint32_t
  * */
-void 
+size_t 
 serializeIPpayload
 (const std::variant<ICMP, IGMP, TCP, UDP>* ipPayload, unsigned char* bytes)
 {
@@ -80,7 +80,7 @@ serializeIPpayload
         bytes[i] =  static_cast<byte>(icmpRef.code >> 8); ++i;
         bytes[i] =  static_cast<byte>(icmpRef.code); ++i;
         
-        return;
+        return i;
     }
     else if (std::holds_alternative<IGMP>(*ipPayload))
     {
@@ -106,7 +106,7 @@ serializeIPpayload
             bytes[i] = static_cast<byte>(igmpRef.groupAddr[j]);
         }
 
-        return;
+        return i;
     }
     else if (std::holds_alternative<UDP>(*ipPayload))
     {
@@ -131,7 +131,7 @@ serializeIPpayload
         bytes[i] = static_cast<byte>(refUdp.length >> 8); ++i;
         bytes[i] = static_cast<byte>(refUdp.length); ++i;
 
-        return;
+        return i;
     }
     else if (std::holds_alternative<TCP>(*ipPayload))
     {
@@ -156,14 +156,14 @@ serializeIPpayload
         bytes[i] = static_cast<byte>(refUdp.length >> 8); ++i;
         bytes[i] = static_cast<byte>(refUdp.length); ++i;
 
-        return;
+        return i;
     }
-
+    return i;
 }
 
 std::variant<ICMP, IGMP, TCP, UDP>
 deserializeIPpayload
-(unsigned char* bytes)
+(const unsigned char* bytes)
 {
     std::variant<ICMP, IGMP, TCP, UDP> result;
     

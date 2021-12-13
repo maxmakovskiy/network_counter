@@ -59,22 +59,16 @@ SnifferManager::Process()
 
         RawFrame frame(rawBuffer, currentBuffLen);
         auto unpacked = frame.GetUnpackedFrame();
-
         handler.AddRow(unpacked);
 
-//        std::cout << unpacked;
 
-   
-/*        if(file) 
+        if(file) 
         {
             std::stringstream ss;
-            ss << frame;
+            ss << unpacked;
             file->WriteString(ss.str());
         }
-        else 
-        {*/
-//            std::cout << frame;
-//        }
+
 
     }
 
@@ -84,6 +78,7 @@ SnifferManager::Process()
     {
         std::cout << item;
     }
+
 
 }
 

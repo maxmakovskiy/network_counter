@@ -26,28 +26,58 @@ SQLite::~SQLite()
 
 bool SQLite::AddRow(const UnpackedFrame& frame)
 {
-    std::string query = "INSERT INTO PACKETS (DstMAC,SrcMAC,EtherType,DstIP,SrcIP,ProtocolIP) VALUES ('";
+    std::string query = "INSERT INTO PACKETS (DstMAC,SrcMAC,EtherType,DstIP,SrcIP,ProtocolIP, IPpayload) VALUES ('";
     query.append(frame.ethHdr.dstMac + "', '");
     query.append(frame.ethHdr.srcMac + "', ");
     query.append(std::to_string(frame.ethHdr.type) + ", '");
     query.append(frame.ipHdr.dstIP + "', '");
     query.append(frame.ipHdr.srcIP + "', ");
-    query.append(std::to_string(frame.ipHdr.protocol) + ");");
-    
-    errorCode = sqlite3_exec(dbObj, query.c_str(), NULL,
-            0, &errorMessage);
-    if (errorCode != SQLITE_OK)
+    query.append(std::to_string(frame.ipHdr.protocol) + ", ?);");
+   
+    errorCode = sqlite3_prepare_v2(dbObj, query.c_str(),
+                -1, &insertRowStmt, NULL);
+    if(errorCode != SQLITE_OK) 
     {
-        std::cerr << "SQL error: " << errorMessage << std::endl;
-        sqlite3_free(errorMessage);
-
+        std::cerr << "SQL error: " << sqlite3_errmsg(dbObj) << std::endl;
+        sqlite3_close(dbObj);
+        sqlite3_finalize(insertRowStmt);
 #ifdef SQL_DEBUG_EXCEPTION
         throw std::invalid_argument("add_row");
 #endif
-
         return false;
     }
-    
+
+    unsigned char* data;
+    // Boiler plate code
+    // Needs for determine size of buffer
+    // which is using as temporary storage
+    // frame -> serialize -> data -> save data as blob
+    size_t counter = 0;
+    if (std::holds_alternative<ICMP>(frame.ipPayload)) { // ICMP
+        data = (unsigned char*)malloc(1 + 4 + 4);
+        counter = 9;
+    } else if (std::holds_alternative<IGMP>(frame.ipPayload)) { // IGMP
+        auto igmpRef = std::get<IGMP>(frame.ipPayload);
+        data = (unsigned char*)malloc(1 + 4 + 4 + 1 + igmpRef.groupAddr.size());
+        counter = 1 + 4 + 4 + 1 + igmpRef.groupAddr.size();
+    } else { // TCP or UDP
+        data = (unsigned char*)malloc(1 + 4 + 4 + 4);
+        counter = 1 + 4 + 4 + 4;
+    }
+    serializeIPpayload(&frame.ipPayload, data);// your data
+    sqlite3_bind_blob(insertRowStmt, 1, data, counter, SQLITE_STATIC);
+
+    if (sqlite3_step(insertRowStmt) != SQLITE_DONE)
+    {
+        std::cerr << "SQL error: " << sqlite3_errmsg(dbObj) << std::endl;
+        sqlite3_close(dbObj);
+        sqlite3_finalize(insertRowStmt);
+#ifdef SQL_DEBUG_EXCEPTION
+        throw std::invalid_argument("add_row");
+#endif
+        return false;
+    }
+   
     return true;
 }
 
@@ -60,7 +90,8 @@ void SQLite::CreateEmptyTable()
       "EtherType   INT    NOT NULL," \
       "DstIP    TEXT    NOT NULL," \
       "SrcIP   TEXT    NOT NULL," \
-      "ProtocolIP   INT    NOT NULL);";
+      "ProtocolIP   INT    NOT NULL," \
+      "IPpayload   BLOB    NOT NULL);";
 
     errorCode = sqlite3_exec(dbObj, createTableQuery.c_str(), NULL,
             0, &errorMessage);
@@ -90,15 +121,13 @@ SQLite::LoadFramesByIPproto
         std::cerr << "SQL error: " << sqlite3_errmsg(dbObj) << std::endl;
         sqlite3_close(dbObj);
         sqlite3_finalize(selectByIPprotoStmt);
-
 #ifdef SQL_DEBUG_EXCEPTION
         throw std::invalid_argument("get_frame_by_IP_proto");
 #endif
-
         return;
     }
 
-    // execute sql statement, and while there are rows returned, print ID
+    // execute sql statement, and while there are rows returned
     int ret_code = 0;
     while((ret_code = sqlite3_step(selectByIPprotoStmt)) == SQLITE_ROW) 
     {
@@ -129,10 +158,16 @@ SQLite::LoadFramesByIPproto
 
         auto ipProto = sqlite3_column_int(selectByIPprotoStmt, 6);
         frame.ipHdr.protocol = static_cast<uint32_t>(ipProto); // uint32_t
-        
+       
+        const unsigned char* blobData =
+            reinterpret_cast<const unsigned char*>(
+                    sqlite3_column_blob(selectByIPprotoStmt, 7));
+        frame.ipPayload = deserializeIPpayload(blobData); 
+
         buffer.push_back(frame);
     }
 
+    sqlite3_finalize(selectByIPprotoStmt);
 }
 
 std::vector<UnpackedFrame> 
