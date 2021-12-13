@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.11)
 
 project(network_counter)
 
@@ -30,12 +30,43 @@ set(CMAKE_CXX_FLAGS "-Wall")
 set(CMAKE_CSS_FLAGS_DEBUG "-g")
 set(CMAKE_CSS_FLAGS_RELEASE "-O2")
 
+# --- Fetch FTXUI --------------------------------------------------------------
+include(FetchContent)
+ 
+set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
+FetchContent_Declare(ftxui
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+  GIT_TAG cecd54df42dd66fdf8386ed461e16b725bffc827
+)
+ 
+FetchContent_GetProperties(ftxui)
+if(NOT ftxui_POPULATED)
+  FetchContent_Populate(ftxui)
+  add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+# --- FTXUI end ----------------------------------------------------------------
+
+# --- Conan --------------------------------------------------------------------
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
+# --- Conan end ----------------------------------------------------------------
 
-add_library(net_sniffer_lib STATIC src/frame.cpp src/manager.cpp src/ntfile.cpp src/unpacked_frame.cpp src/sqlite_dao.cpp)
+add_library(net_sniffer_lib STATIC 
+    src/frame.cpp
+    src/manager.cpp
+    src/ntfile.cpp
+    src/unpacked_frame.cpp
+    src/sqlite_dao.cpp
+)
 
 add_executable(main src/main.cpp)
 
-target_link_libraries(main net_sniffer_lib ${CONAN_LIBS})
+target_include_directories(main PRIVATE src)
+
+target_link_libraries(main
+    net_sniffer_lib 
+    ${CONAN_LIBS}
+    ftxui::screen
+    ftxui::dom
+)
 
